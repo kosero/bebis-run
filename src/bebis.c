@@ -15,8 +15,8 @@ Bebis BebisInit(Vector3 position, float base_speed, float run_speed,
 
 void BebisUpdate(Bebis *bebis, Body *body, float delta) {
   Vector3 dir = Vector3Subtract(body->position, bebis->position);
-  dir.y = 0.01f;
   float distance = Vector3Length(dir);
+  bebis->position.y = 1.0f;
 
   if (distance > 0.01f) {
     dir = Vector3Normalize(dir);

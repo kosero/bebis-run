@@ -4,46 +4,53 @@
 #include <raylib.h>
 #include <raymath.h>
 
-Vector2 sensitivity = {0.001f, 0.001f};
-Body player = {0};
-Vector2 lookRotation = {0};
-float headTimer = 0.0f;
-float walkLerp = 0.0f;
-float headLerp = STAND_HEIGHT;
-Vector2 lean = {0};
+Player PlayerInit(void) {
+  Player player = {
+      .sensitivity = {0.001f, 0.001f},
+      .body = {0},
+      .lookRotation = {0},
+      .headTimer = 0.0f,
+      .walkLerp = 0.0f,
+      .headLerp = 0.0f,
+      .lean = {0},
+  };
 
-void PlayerUpdate(Camera *camera, float delta) {
+  return player;
+}
+
+void PlayerUpdate(Player *player, float delta) {
   Vector2 mouseDelta = GetMouseDelta();
-  lookRotation.x -= mouseDelta.x * sensitivity.x;
-  lookRotation.y += mouseDelta.y * sensitivity.y;
+  player->lookRotation.x -= mouseDelta.x * player->sensitivity.x;
+  player->lookRotation.y += mouseDelta.y * player->sensitivity.y;
 
   char sideway = (IsKeyDown(KEY_D) - IsKeyDown(KEY_A));
   char forward = (IsKeyDown(KEY_W) - IsKeyDown(KEY_S));
   bool crouching = IsKeyDown(KEY_LEFT_CONTROL);
 
-  UpdateBody(&player, lookRotation.x, sideway, forward, IsKeyPressed(KEY_SPACE),
-             crouching);
+  UpdateBody(&player->body, player->lookRotation.x, sideway, forward,
+             IsKeyPressed(KEY_SPACE), crouching);
 
-  headLerp =
-      Lerp(headLerp, (crouching ? CROUCH_HEIGHT : STAND_HEIGHT), 20.0f * delta);
+  player->headLerp =
+      Lerp(player->headLerp, (crouching ? CROUCH_HEIGHT : STAND_HEIGHT),
+           20.0f * delta);
 
-  camera->position = (Vector3){
-      player.position.x,
-      player.position.y + (BOTTOM_HEIGHT + headLerp),
-      player.position.z,
+  player->camera.position = (Vector3){
+      player->body.position.x,
+      player->body.position.y + (BOTTOM_HEIGHT + player->headLerp),
+      player->body.position.z,
   };
 
-  if (player.isGrounded && (forward || sideway)) {
-    headTimer += delta * 3.0f;
-    walkLerp = Lerp(walkLerp, 1.0f, 10.0f * delta);
-    camera->fovy = Lerp(camera->fovy, 55.0f, 5.0f * delta);
+  if (player->body.isGrounded && (forward || sideway)) {
+    player->headTimer += delta * 3.0f;
+    player->walkLerp = Lerp(player->walkLerp, 1.0f, 10.0f * delta);
+    player->camera.fovy = Lerp(player->camera.fovy, 55.0f, 5.0f * delta);
   } else {
-    walkLerp = Lerp(walkLerp, 0.0f, 10.0f * delta);
-    camera->fovy = Lerp(camera->fovy, 60.0f, 5.0f * delta);
+    player->walkLerp = Lerp(player->walkLerp, 0.0f, 10.0f * delta);
+    player->camera.fovy = Lerp(player->camera.fovy, 60.0f, 5.0f * delta);
   }
 
-  lean.x = Lerp(lean.x, sideway * 0.02f, 10.0f * delta);
-  lean.y = Lerp(lean.y, forward * 0.015f, 10.0f * delta);
+  player->lean.x = Lerp(player->lean.x, sideway * 0.02f, 10.0f * delta);
+  player->lean.y = Lerp(player->lean.y, forward * 0.015f, 10.0f * delta);
 }
 
 void UpdateBody(Body *body, float rot, char side, char forward,
@@ -104,43 +111,44 @@ void UpdateBody(Body *body, float rot, char side, char forward,
   }
 }
 
-void UpdateCameraFPS(Camera *camera) {
+void UpdateCameraFPS(Player *player) {
   const Vector3 up = (Vector3){0.0f, 1.0f, 0.0f};
   const Vector3 targetOffset = (Vector3){0.0f, 0.0f, -1.0f};
 
-  Vector3 yaw = Vector3RotateByAxisAngle(targetOffset, up, lookRotation.x);
+  Vector3 yaw =
+      Vector3RotateByAxisAngle(targetOffset, up, player->lookRotation.x);
 
   float maxAngelUp = Vector3Angle(up, yaw);
   maxAngelUp -= 0.001f;
-  if (-(lookRotation.y) > maxAngelUp) {
-    lookRotation.y = -maxAngelUp;
+  if (-(player->lookRotation.y) > maxAngelUp) {
+    player->lookRotation.y = -maxAngelUp;
   }
 
   float maxAngleDown = Vector3Angle(Vector3Negate(up), yaw);
   maxAngleDown *= -1.0f;
   maxAngleDown += 0.001f;
-  if (-(lookRotation.y) < maxAngleDown) {
-    lookRotation.y = -maxAngleDown;
+  if (-(player->lookRotation.y) < maxAngleDown) {
+    player->lookRotation.y = -maxAngleDown;
   }
 
   Vector3 right = Vector3Normalize(Vector3CrossProduct(yaw, up));
 
-  float pitchAngle = -lookRotation.y - lean.y;
+  float pitchAngle = -player->lookRotation.y - player->lean.y;
   pitchAngle = Clamp(pitchAngle, -PI / 2 + 0.0001f, PI / 2 - 0.0001f);
   Vector3 pitch = Vector3RotateByAxisAngle(yaw, right, pitchAngle);
 
-  float headSin = sinf(headTimer * PI);
-  float headCos = cosf(headTimer * PI);
+  float headSin = sinf(player->headTimer * PI);
+  float headCos = cosf(player->headTimer * PI);
   const float stepRotation = 0.01f;
-  camera->up =
-      Vector3RotateByAxisAngle(up, pitch, headSin * stepRotation + lean.x);
+  player->camera.up = Vector3RotateByAxisAngle(
+      up, pitch, headSin * stepRotation + player->lean.x);
 
   const float bobSide = 0.1f;
   const float bobUp = 0.15f;
   Vector3 bobbing = Vector3Scale(right, headSin * bobSide);
   bobbing.y = fabsf(headCos * bobUp);
 
-  camera->position =
-      Vector3Add(camera->position, Vector3Scale(bobbing, walkLerp));
-  camera->target = Vector3Add(camera->position, pitch);
+  player->camera.position = Vector3Add(player->camera.position,
+                                       Vector3Scale(bobbing, player->walkLerp));
+  player->camera.target = Vector3Add(player->camera.position, pitch);
 }
