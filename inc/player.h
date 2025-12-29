@@ -21,16 +21,15 @@ typedef struct {
   bool isGrounded;
 } Body;
 
-static Vector2 sensivitiy = {0.001f, 0.001f};
+extern Vector2 sensitivity;
+extern Body player;
+extern Vector2 lookRotation;
+extern float headTimer;
+extern float walkLerp;
+extern float headLerp;
+extern Vector2 lean;
 
-static Body player = {0};
-static Vector2 lookRotation = {0};
-static float headTimer = 0.0f;
-static float walkLerp = 0.0f;
-static float headLerp = STAND_HEIGHT;
-static Vector2 lean = {0};
-
-void UpdateCameraFps(Camera *camera);
+void UpdateCameraFPS(Camera *camera);
 void UpdateBody(Body *body, float rot, char side, char forward,
                 bool jumpPressed, bool crouchHold);
 

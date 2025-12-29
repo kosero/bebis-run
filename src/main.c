@@ -1,52 +1,74 @@
 #include "config.h"
-#include <raylib.h>
+#include "player.h"
 
-static void DrawLevel(void);
+#include <raylib.h>
+#include <raymath.h>
 
 int main(void) {
   SetConfigFlags(FLAG_VSYNC_HINT);
   InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE);
 
-  while (!WindowShouldClose()) {
-    BeginDrawing();
-    ClearBackground(BLACK);
+  ToggleFullscreen();
 
+  Camera camera = {0};
+  camera.fovy = 60.0f;
+  camera.projection = CAMERA_PERSPECTIVE;
+  camera.position = (Vector3){
+      player.position.x,
+      player.position.y + (BOTTOM_HEIGHT + headLerp),
+      player.position.z,
+  };
+
+  UpdateCameraFPS(&camera);
+  DisableCursor();
+
+  while (!WindowShouldClose()) {
+    Vector2 mouseDelta = GetMouseDelta();
+    lookRotation.x -= mouseDelta.x * sensitivity.x;
+    lookRotation.y += mouseDelta.y * sensitivity.y;
+
+    char sideway = (IsKeyDown(KEY_D) - IsKeyDown(KEY_A));
+    char forward = (IsKeyDown(KEY_W) - IsKeyDown(KEY_S));
+    bool crouching = IsKeyDown(KEY_LEFT_CONTROL);
+    UpdateBody(&player, lookRotation.x, sideway, forward,
+               IsKeyPressed(KEY_SPACE), crouching);
+
+    float delta = GetFrameTime();
+    headLerp = Lerp(headLerp, (crouching ? CROUCH_HEIGHT : STAND_HEIGHT),
+                    20.0f * delta);
+    camera.position = (Vector3){
+        player.position.x,
+        player.position.y + (BOTTOM_HEIGHT + headLerp),
+        player.position.z,
+    };
+
+    if (player.isGrounded && ((forward != 0) || (sideway != 0))) {
+      headTimer += delta * 3.0f;
+      walkLerp = Lerp(walkLerp, 1.0f, 10.0f * delta);
+      camera.fovy = Lerp(camera.fovy, 55.0f, 5.0f * delta);
+    } else {
+      walkLerp = Lerp(walkLerp, 0.0f, 10.0f * delta);
+      camera.fovy = Lerp(camera.fovy, 60.0f, 5.0f * delta);
+    }
+
+    lean.x = Lerp(lean.x, sideway * 0.02f, 10.0f * delta);
+    lean.y = Lerp(lean.y, forward * 0.015f, 10.0f * delta);
+
+    UpdateCameraFPS(&camera);
+
+    BeginDrawing();
+    ClearBackground(RAYWHITE);
+
+    DrawFPS(15, 15);
+
+    BeginMode3D(camera);
+
+    DrawGrid(250.0, 1.0);
+
+    EndMode3D();
     EndDrawing();
   }
 
+  CloseWindow();
   return 0;
-}
-
-static void DrawLevel(void) {
-  const int floorExtent = 25;
-  const float tileSize = 5.0f;
-  const Color tileColor1 = (Color){150, 200, 200, 255};
-
-  for (int y = -floorExtent; y < floorExtent; y++) {
-    for (int x = -floorExtent; x < floorExtent; x++) {
-      DrawPlane((Vector3){x * tileSize, 0.0f, y * tileSize},
-                (Vector2){-tileSize, tileSize}, tileColor1);
-    }
-  }
-
-  const Vector3 towerSize = (Vector3){16.0f, 32.0f, 16.0f};
-  const Color towerColor = (Color){150, 200, 200, 255};
-
-  Vector3 towerPos = (Vector3){16.0f, 16.0f, 16.0f};
-  DrawCubeV(towerPos, towerSize, towerColor);
-  DrawCubeWiresV(towerPos, towerSize, DARKBLUE);
-
-  towerPos.x *= -1;
-  DrawCubeV(towerPos, towerSize, towerColor);
-  DrawCubeWiresV(towerPos, towerSize, DARKBLUE);
-
-  towerPos.z *= -1;
-  DrawCubeV(towerPos, towerSize, towerColor);
-  DrawCubeWiresV(towerPos, towerSize, DARKBLUE);
-
-  towerPos.x *= -1;
-  DrawCubeV(towerPos, towerSize, towerColor);
-  DrawCubeWiresV(towerPos, towerSize, DARKBLUE);
-
-  DrawSphere((Vector3){300.0f, 300.0f, 0.0f}, 100.0f, (Color){255, 0, 0, 255});
 }

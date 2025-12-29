@@ -4,6 +4,14 @@
 #include <raylib.h>
 #include <raymath.h>
 
+Vector2 sensitivity = {0.001f, 0.001f};
+Body player = {0};
+Vector2 lookRotation = {0};
+float headTimer = 0.0f;
+float walkLerp = 0.0f;
+float headLerp = STAND_HEIGHT;
+Vector2 lean = {0};
+
 void UpdateBody(Body *body, float rot, char side, char forward,
                 bool jumpPressed, bool crouchHold) {
   Vector2 input = (Vector2){(float)side, (float)-forward};
@@ -62,7 +70,7 @@ void UpdateBody(Body *body, float rot, char side, char forward,
   }
 }
 
-void UpdateCameraFps(Camera *camera) {
+void UpdateCameraFPS(Camera *camera) {
   const Vector3 up = (Vector3){0.0f, 1.0f, 0.0f};
   const Vector3 targetOffset = (Vector3){0.0f, 0.0f, -1.0f};
 
