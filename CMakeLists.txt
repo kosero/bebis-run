@@ -13,8 +13,8 @@ target_compile_options(bebis-run PRIVATE
         -Wall -Wextra -pedantic -Wconversion -Wnull-dereference
         -pipe -fno-common -fstack-protector-strong -O3
 )
-target_link_libraries(Elarion PRIVATE
+target_link_libraries(bebis-run PRIVATE
         /usr/local/lib/libraylib.a
-        m dl pthread GL enet
+        m dl pthread GL
 )
 target_include_directories(bebis-run PRIVATE inc lib /usr/local/include)

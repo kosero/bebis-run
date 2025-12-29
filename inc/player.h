@@ -2,16 +2,17 @@
 #define PLAYER_H
 
 #include <raylib.h>
-const float MAX_SPEED = 20.0f;
-const float CROUCH_SPEED = 5.0f;
-const float JUMP_FORCE = 12.0f;
-const float MAX_ACCEL = 150.0f;
-const float FRICTION = 0.86f;
-const float AIR_DRAG = 0.98f;
-const float CONTROL = 15.0f;
-const float CROUCH_HEIGHT = 0.0;
-const float STAND_HEIGHT = 1.0f;
-const float BOTTOM_HEIGHT = 0.5f;
+
+#define MAX_SPEED 20.0f
+#define CROUCH_SPEED 5.0f
+#define JUMP_FORCE 12.0f
+#define MAX_ACCEL 150.0f
+#define FRICTION 0.86f
+#define AIR_DRAG 0.98f
+#define CONTROL 15.0f
+#define CROUCH_HEIGHT 0.0
+#define STAND_HEIGHT 1.0f
+#define BOTTOM_HEIGHT 0.5f
 
 typedef struct {
   Vector3 position;
