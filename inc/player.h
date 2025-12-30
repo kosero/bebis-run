@@ -5,9 +5,8 @@
 #include <raylib.h>
 
 #define BASE_SPEED 8.0f
-#define RUN_SPEED 15.0f
+#define RUN_SPEED 20.0f
 #define CROUCH_SPEED 3.0f
-
 #define JUMP_FORCE 12.0f
 #define MAX_ACCEL 1000.0f
 #define FRICTION 0.86f

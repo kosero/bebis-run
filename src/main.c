@@ -11,6 +11,7 @@ GameState currentGameState = GameLoop;
 int main(void) {
   SetConfigFlags(FLAG_VSYNC_HINT | FLAG_MSAA_4X_HINT);
   InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE);
+  InitAudioDevice();
 
   Player player = PlayerInit();
   Camera camera = {0};
@@ -28,7 +29,8 @@ int main(void) {
   ToggleFullscreen();
 
   Vector3 pos = {0};
-  Bebis bebis = BebisInit(pos, 10.0f, 15.0f, "./resource/bebis.png");
+  Bebis bebis = BebisInit(pos, 10.0f, 15.0f, "./resource/bebis.png",
+                          "./resource/ham_tr.mp3");
 
   while (!WindowShouldClose()) {
     float delta = GetFrameTime();
@@ -37,6 +39,8 @@ int main(void) {
     case MainMenu:
       break;
     case GameLoop:
+      UpdateBebisSound(player.body.position, bebis.position, bebis.sound);
+
       PlayerUpdate(&player, delta);
       UpdateCameraFPS(&player);
 
@@ -60,6 +64,7 @@ int main(void) {
   }
 
   UnloadTexture(bebis.texture);
+  CloseAudioDevice();
   CloseWindow();
   return 0;
 }

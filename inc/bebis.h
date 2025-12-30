@@ -9,10 +9,13 @@ typedef struct {
   float base_speed;
   float run_speed;
   Texture2D texture;
+  Music sound;
 } Bebis;
 
-Bebis BebisInit(Vector3 position, float base_speed, float run_speed,
-                const char *texture_path);
-void BebisUpdate(Bebis *bebis, Vector3 position, float delta);
+Bebis BebisInit(const Vector3 position, const float base_speed,
+                const float run_speed, const char *texture_path,
+                const char *sound_path);
+void BebisUpdate(Bebis *bebis, const Vector3 position, const float delta);
+void UpdateBebisSound(const Vector3 v1, const Vector3 v2, Music sound);
 
 #endif // !BEBIS_H
