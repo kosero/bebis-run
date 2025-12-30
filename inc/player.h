@@ -36,9 +36,7 @@ typedef struct Player {
 } Player;
 
 Player PlayerInit(void);
-void PlayerUpdate(Player *player, float delta);
+void PlayerUpdate(Player *player, const float delta);
 void UpdateCameraFPS(Player *player);
-void UpdateBody(Body *body, float rot, char side, char forward,
-                bool jumpPressed, bool crouchHold, bool running);
 
 #endif // !PLAYER_H

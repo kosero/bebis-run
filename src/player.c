@@ -19,56 +19,9 @@ Player PlayerInit(void) {
   return player;
 }
 
-void PlayerUpdate(Player *player, float delta) {
-  Vector2 mouseDelta = GetMouseDelta();
-  player->lookRotation.x -= mouseDelta.x * player->sensitivity.x;
-  player->lookRotation.y += mouseDelta.y * player->sensitivity.y;
-
-  char sideway = (IsKeyDown(KEY_D) - IsKeyDown(KEY_A));
-  char forward = (IsKeyDown(KEY_W) - IsKeyDown(KEY_S));
-
-  bool crouching = IsKeyDown(KEY_LEFT_CONTROL);
-  bool running = IsKeyDown(KEY_LEFT_SHIFT);
-
-  UpdateBody(&player->body, player->lookRotation.x, sideway, forward,
-             IsKeyPressed(KEY_SPACE), crouching, running);
-
-  player->headLerp =
-      Lerp(player->headLerp, (crouching ? CROUCH_HEIGHT : STAND_HEIGHT),
-           20.0f * delta);
-
-  player->camera.position = (Vector3){
-      player->body.position.x,
-      player->body.position.y + (BOTTOM_HEIGHT + player->headLerp),
-      player->body.position.z,
-  };
-
-  float headBobSpeed = 3.0f;
-  float targetFov = 60.0f;
-
-  if (running) {
-    headBobSpeed = 5.0f;
-    targetFov = 50.0f;
-  } else if (crouching) {
-    headBobSpeed = 1.5f;
-    targetFov = 60.0f;
-  }
-
-  if (player->body.isGrounded && (forward || sideway)) {
-    player->headTimer += delta * headBobSpeed;
-    player->walkLerp = Lerp(player->walkLerp, 1.0f, 10.0f * delta);
-    player->camera.fovy = Lerp(player->camera.fovy, targetFov, 5.0f * delta);
-  } else {
-    player->walkLerp = Lerp(player->walkLerp, 0.0f, 10.0f * delta);
-    player->camera.fovy = Lerp(player->camera.fovy, 60.0f, 5.0f * delta);
-  }
-
-  player->lean.x = Lerp(player->lean.x, sideway * 0.02f, 10.0f * delta);
-  player->lean.y = Lerp(player->lean.y, forward * 0.015f, 10.0f * delta);
-}
-
-void UpdateBody(Body *body, float rot, char side, char forward,
-                bool jumpPressed, bool crouchHold, bool running) {
+static void UpdateBody(Body *body, const float rot, const char side,
+                       const char forward, const bool jumpPressed,
+                       const bool crouchHold, const bool running) {
   Vector2 input = (Vector2){(float)side, (float)-forward};
 
 #if defined(NORMALIZE_INPUT)
@@ -125,6 +78,54 @@ void UpdateBody(Body *body, float rot, char side, char forward,
     body->velocity.y = 0.0f;
     body->isGrounded = true;
   }
+}
+
+void PlayerUpdate(Player *player, const float delta) {
+  Vector2 mouseDelta = GetMouseDelta();
+  player->lookRotation.x -= mouseDelta.x * player->sensitivity.x;
+  player->lookRotation.y += mouseDelta.y * player->sensitivity.y;
+
+  char sideway = (IsKeyDown(KEY_D) - IsKeyDown(KEY_A));
+  char forward = (IsKeyDown(KEY_W) - IsKeyDown(KEY_S));
+
+  bool crouching = IsKeyDown(KEY_LEFT_CONTROL);
+  bool running = IsKeyDown(KEY_LEFT_SHIFT);
+
+  UpdateBody(&player->body, player->lookRotation.x, sideway, forward,
+             IsKeyPressed(KEY_SPACE), crouching, running);
+
+  player->headLerp =
+      Lerp(player->headLerp, (crouching ? CROUCH_HEIGHT : STAND_HEIGHT),
+           20.0f * delta);
+
+  player->camera.position = (Vector3){
+      player->body.position.x,
+      player->body.position.y + (BOTTOM_HEIGHT + player->headLerp),
+      player->body.position.z,
+  };
+
+  float headBobSpeed = 3.0f;
+  float targetFov = 60.0f;
+
+  if (running) {
+    headBobSpeed = 5.0f;
+    targetFov = 50.0f;
+  } else if (crouching) {
+    headBobSpeed = 1.5f;
+    targetFov = 60.0f;
+  }
+
+  if (player->body.isGrounded && (forward || sideway)) {
+    player->headTimer += delta * headBobSpeed;
+    player->walkLerp = Lerp(player->walkLerp, 1.0f, 10.0f * delta);
+    player->camera.fovy = Lerp(player->camera.fovy, targetFov, 5.0f * delta);
+  } else {
+    player->walkLerp = Lerp(player->walkLerp, 0.0f, 10.0f * delta);
+    player->camera.fovy = Lerp(player->camera.fovy, 60.0f, 5.0f * delta);
+  }
+
+  player->lean.x = Lerp(player->lean.x, sideway * 0.02f, 10.0f * delta);
+  player->lean.y = Lerp(player->lean.y, forward * 0.015f, 10.0f * delta);
 }
 
 void UpdateCameraFPS(Player *player) {
