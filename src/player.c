@@ -9,6 +9,7 @@ Player PlayerInit(void) {
       .sensitivity = {0.001f, 0.001f},
       .body = {0},
       .lookRotation = {0},
+      .isRunning = 0,
       .headTimer = 0.0f,
       .walkLerp = 0.0f,
       .headLerp = 0.0f,
@@ -25,10 +26,12 @@ void PlayerUpdate(Player *player, float delta) {
 
   char sideway = (IsKeyDown(KEY_D) - IsKeyDown(KEY_A));
   char forward = (IsKeyDown(KEY_W) - IsKeyDown(KEY_S));
+
   bool crouching = IsKeyDown(KEY_LEFT_CONTROL);
+  bool running = IsKeyDown(KEY_LEFT_SHIFT);
 
   UpdateBody(&player->body, player->lookRotation.x, sideway, forward,
-             IsKeyPressed(KEY_SPACE), crouching);
+             IsKeyPressed(KEY_SPACE), crouching, running);
 
   player->headLerp =
       Lerp(player->headLerp, (crouching ? CROUCH_HEIGHT : STAND_HEIGHT),
@@ -40,10 +43,21 @@ void PlayerUpdate(Player *player, float delta) {
       player->body.position.z,
   };
 
+  float headBobSpeed = 3.0f;
+  float targetFov = 60.0f;
+
+  if (running) {
+    headBobSpeed = 5.0f;
+    targetFov = 50.0f;
+  } else if (crouching) {
+    headBobSpeed = 1.5f;
+    targetFov = 60.0f;
+  }
+
   if (player->body.isGrounded && (forward || sideway)) {
-    player->headTimer += delta * 3.0f;
+    player->headTimer += delta * headBobSpeed;
     player->walkLerp = Lerp(player->walkLerp, 1.0f, 10.0f * delta);
-    player->camera.fovy = Lerp(player->camera.fovy, 55.0f, 5.0f * delta);
+    player->camera.fovy = Lerp(player->camera.fovy, targetFov, 5.0f * delta);
   } else {
     player->walkLerp = Lerp(player->walkLerp, 0.0f, 10.0f * delta);
     player->camera.fovy = Lerp(player->camera.fovy, 60.0f, 5.0f * delta);
@@ -54,7 +68,7 @@ void PlayerUpdate(Player *player, float delta) {
 }
 
 void UpdateBody(Body *body, float rot, char side, char forward,
-                bool jumpPressed, bool crouchHold) {
+                bool jumpPressed, bool crouchHold, bool running) {
   Vector2 input = (Vector2){(float)side, (float)-forward};
 
 #if defined(NORMALIZE_INPUT)
@@ -87,12 +101,14 @@ void UpdateBody(Body *body, float rot, char side, char forward,
       (Vector3){body->velocity.x * decel, 0.0f, body->velocity.z * decel};
 
   float hvelLength = Vector3Length(hvel);
-  if (hvelLength < (MAX_SPEED * 0.01f))
+  if (hvelLength < (BASE_SPEED * 0.01f))
     hvel = (Vector3){0};
 
   float speed = Vector3DotProduct(hvel, body->dir);
 
-  float maxSpeed = (crouchHold ? CROUCH_SPEED : MAX_SPEED);
+  float maxSpeed = (crouchHold ? CROUCH_SPEED : BASE_SPEED);
+  maxSpeed = (running ? RUN_SPEED : maxSpeed);
+
   float accel = Clamp(maxSpeed - speed, 0.0f, MAX_ACCEL * delta);
   hvel.x += body->dir.x * accel;
   hvel.z += body->dir.z * accel;
