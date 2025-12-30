@@ -40,7 +40,7 @@ int main(void) {
       PlayerUpdate(&player, delta);
       UpdateCameraFPS(&player);
 
-      BebisUpdate(&bebis, &player.body, delta);
+      BebisUpdate(&bebis, player.body.position, delta);
 
       BeginDrawing();
       ClearBackground(BLACK);

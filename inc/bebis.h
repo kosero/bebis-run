@@ -1,7 +1,6 @@
 #ifndef BEBIS_H
 #define BEBIS_H
 
-#include "player.h"
 #include <raylib.h>
 
 typedef struct {
@@ -14,6 +13,6 @@ typedef struct {
 
 Bebis BebisInit(Vector3 position, float base_speed, float run_speed,
                 const char *texture_path);
-void BebisUpdate(Bebis *bebis, Body *body, float delta);
+void BebisUpdate(Bebis *bebis, Vector3 position, float delta);
 
 #endif // !BEBIS_H

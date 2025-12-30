@@ -59,7 +59,7 @@ void UpdateBody(Body *body, float rot, char side, char forward,
 
 #if defined(NORMALIZE_INPUT)
   if ((side != 0) && (forward != 0))
-    = input = Vector2Normalize(input);
+    input = Vector2Normalize(input);
 #endif
 
   float delta = GetFrameTime();
