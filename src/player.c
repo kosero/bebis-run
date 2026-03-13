@@ -5,16 +5,16 @@
 #include <raymath.h>
 
 Player PlayerInit(void) {
-  Player player = {
-      .sensitivity = {0.001f, 0.001f},
-      .body = {0},
-      .lookRotation = {0},
-      .isRunning = 0,
-      .headTimer = 0.0f,
-      .walkLerp = 0.0f,
-      .headLerp = 0.0f,
-      .lean = {0},
-  };
+    Player player = {0};
+
+  player.sensitivity = (Vector2){0.001f, 0.001f};
+  player.body = (Body){0};
+  player.lookRotation = (Vector2){0};
+  player.isRunning = 0;
+  player.headTimer = 0.0f;
+  player.walkLerp = 0.0f;
+  player.headLerp = 0.0f;
+  player.lean = (Vector2){0};
 
   return player;
 }
